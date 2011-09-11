@@ -11,3 +11,8 @@ To initialize the Popcorn.Server and install base dependencies, run the followin
 
 
 
+## Pragma
+
+All JavaScript should adhere to the style guide set forth here:
+
+http://github.com/rwldrn/idiomatic.js
