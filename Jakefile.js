@@ -152,6 +152,18 @@ task( "hint", [], function( params ) {
 	});
 });
 
+desc( "Run socket" );
+task( "socket", [ ], function() {
+	try {
+
+		// Placeholder
+		spawn( "node", [ "socket/socket.js" ] );
+
+
+	} catch( ex ) {
+		console.log( ex.toString() );
+	}
+});
 
 desc( "Run server" );
 task( "run", [ ], function() {
