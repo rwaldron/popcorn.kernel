@@ -4,7 +4,7 @@ var app = require( "express" ).createServer(),
 app.listen( 80 );
 
 app.get( "/", function( req, res ) {
-	res.sendfile( __dirname + "/index.html" );
+	res.sendfile( __dirname + "/test/socket.html" );
 });
 
 io.sockets.on( "connection", function( socket ) {
