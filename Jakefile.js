@@ -52,7 +52,8 @@ task( "hint", [], function( params ) {
 	!SILENT && print( "\n" );
 
 	var files = FILES,
-	hints = HINTS;
+	hints = HINTS,
+	count = 0;
 
 	function hintFile( file, hint, set ) {
 
@@ -140,11 +141,13 @@ task( "hint", [], function( params ) {
 
 			files[ set ].forEach(function( file, i ) {
 				hintFile( file, hints[ set ], set );
+
+				count++;
 			});
 		}
 
 		if ( HINTABLES.length - 1 === i ) {
-			print("Complete.\n");
+			print("Complete: " + count + " files hinted\n");
 		}
 	});
 });
@@ -153,7 +156,11 @@ task( "hint", [], function( params ) {
 desc( "Run server" );
 task( "run", [ ], function() {
 	try {
+
+		// Placeholder
 		spawn( "node", [ "server.js" ] );
+
+
 	} catch( ex ) {
 		console.log( ex.toString() );
 	}
