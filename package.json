@@ -1,0 +1,22 @@
+{
+	"author": "",
+	"name": "popcorn.server",
+	"description": "web server tailored to serving media for popcorn.js projects",
+	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:rwldrn/popcorn.server.git"
+	},
+	"engines": {
+		"node": ">=v0.4.8"
+	},
+	"devDependencies": {
+		"jshint": "*",
+		"uglify-js": "*",
+		"express": "*",
+		"socket.io": "*",
+		"cluster": "*",
+		"vows": "*",
+		"stats": "*"
+	}
+}
