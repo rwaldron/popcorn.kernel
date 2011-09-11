@@ -1,6 +1,6 @@
 # Popcorn Server
 
-Node.js based, Socket.io enabled, JSON Blonn storage and general media service
+Node.js based, Socket.io enabled, JSON Blob/Document storage and general media project awesomeness
 
 
 Always updates local copies of Popcorn from popcornjs.org/code/dist
