@@ -1,0 +1,12 @@
+<script src="/js/vendor/socket.io.js"></script>
+<script>
+	var socket = io.connect( "http://localhost/???" );
+
+	// Receive an Update
+	socket.on( "message", function( data ) {
+
+		console.log( data );
+
+	});
+
+</script>
