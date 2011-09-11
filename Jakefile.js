@@ -11,13 +11,16 @@ spawn = cp.spawn,
 assert = require("assert"),
 child;
 
-
+// Contants
 FILES = {
 	vendor: [
 
 	],
 	application: [
 
+	],
+	system: [
+		"Jakefile.js"
 	],
 	// server: [
 	// 	"proxy/index.js"
@@ -27,14 +30,14 @@ FILES = {
 	]
 };
 
+JS_DIR = "js/";
 
-DIR = "js/";
-
-HINTABLES = [ "application", "server", "unit" ];
+HINTABLES = [ "application", "server", "unit", "system" ];
 
 HINTS = {
 	// `data: true` can be used by us to output information collected and available via jshint.data()
 	application: { unused: true, unuseds: true, devel: true, undef: true, noempty: true, evil: true, forin: false, maxerr: 100 },
+	system: { devel: true, noempty: true, evil: true, forin: false, maxerr: 100 },
 	server: { devel: true, noempty: true, evil: true, forin: false, maxerr: 100 },
 	unit: { devel: true, evil: true, forin: false, maxerr: 100 }
 };
@@ -140,6 +143,7 @@ task( "hint", [], function( params ) {
 			!SILENT && print( "\n    " + set + ": \n" );
 
 			files[ set ].forEach(function( file, i ) {
+
 				hintFile( file, hints[ set ], set );
 
 				count++;
@@ -147,7 +151,7 @@ task( "hint", [], function( params ) {
 		}
 
 		if ( HINTABLES.length - 1 === i ) {
-			print("Complete: " + count + " files hinted\n");
+			print("\nComplete: " + count + " files hinted\n");
 		}
 	});
 });
@@ -158,7 +162,6 @@ task( "socket", [ ], function() {
 
 		// Placeholder
 		spawn( "node", [ "socket/socket.js" ] );
-
 
 	} catch( ex ) {
 		console.log( ex.toString() );
