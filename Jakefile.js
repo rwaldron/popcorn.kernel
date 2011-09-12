@@ -156,6 +156,14 @@ task( "hint", [], function( params ) {
 	});
 });
 
+desc( "Install Apps" );
+task( "apps", [ ], function() {
+
+	// TODO: install popcornmaker
+
+});
+
+
 desc( "Run socket" );
 task( "socket", [ ], function() {
 	try {
