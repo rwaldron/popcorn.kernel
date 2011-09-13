@@ -1,0 +1,3 @@
+[submodule "lib/node-fluent-ffmpeg"]
+	path = lib/node-fluent-ffmpeg
+	url = git://github.com/schaermu/node-fluent-ffmpeg.git
