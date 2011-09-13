@@ -10,9 +10,6 @@ To initialize the Popcorn.Server and install base dependencies, run the followin
 	$ ./runfirst.sh
 
 
-	$ git submodule init
-
-
 ## Pragma
 
 All JavaScript should adhere to the style guide set forth here:
