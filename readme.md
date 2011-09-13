@@ -7,8 +7,10 @@ Node.js based, Socket.io enabled, JSON Blob/Document storage and general media p
 
 To initialize the Popcorn.Server and install base dependencies, run the following from the command line:
 
-	./runfirst.sh
+	$ ./runfirst.sh
 
+
+	$ git submodule init
 
 
 ## Pragma
