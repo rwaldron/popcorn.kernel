@@ -1,4 +1,4 @@
-# Popcorn Server
+# Popcorn Kernel
 
 Node.js based, Socket.io enabled, JSON Blob/Document storage and general media project awesomeness
 
