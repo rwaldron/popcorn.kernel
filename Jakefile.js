@@ -9,72 +9,72 @@
  */
 
 var // Dependency References
-		fs = require( "fs" ),
-		_ = require( "underscore" ),
-		jshint = require( "jshint" ).JSHINT,
-		colors = require( "colors" ),
-		uglifyjs = require( "uglify-js" ),
-		Buffer = require( "buffer" ).Buffer,
-		zlib = require( "zlib" ),
-		dateFormat = require( "dateformat" );
+	fs = require( "fs" ),
+	_ = require( "underscore" ),
+	jshint = require( "jshint" ).JSHINT,
+	colors = require( "colors" ),
+	uglifyjs = require( "uglify-js" ),
+	Buffer = require( "buffer" ).Buffer,
+	zlib = require( "zlib" ),
+	dateFormat = require( "dateformat" );
 
 var // Shortcut References
-		slice = Array.prototype.slice,
-		now = new Date();
+	slice = Array.prototype.slice,
+	now = new Date();
 
 var // Program References
-		$$ = {},
-		// Get options, defaults merged with build.json file.
-		config = _.extend({}, true, {
+	$$ = {},
+	// Get options, defaults merged with build.json file.
+	config = _.extend({}, true, {
 
-				// Meta Build Info
-				"meta": {
-					"buildDate": dateFormat( now, "m/d/yyyy" )
-				},
-
-				// Overridden with build.json
-				"files": {},
-
-				// License Banner Template
-				"banner": [
-					"// <%= label %> - v<%= version %> - <%= buildDate %>",
-					"// <%= homeurl %>",
-					"// <%= copyright %>; Licensed <%= license.join(', ') %>"
-				].join( "\n" ),
-
-				// JSHint Optional Settings
-				"jshint": {
-					unused: true,
-					unuseds: true,
-					devel: true,
-					undef: true,
-					noempty: true,
-					evil: true,
-					forin: false,
-					maxerr: 100
-					// "curly": true,
-					// "eqnull": true,
-					// "immed": true,
-					// "newcap": true,
-					// "noarg": true,
-					// "undef": true,
-					// "browser": true,
-					// "predef": [ "jQuery" ]
-				},
-
-				// Uglify Optional Settings
-				"uglify": {
-					"mangle": {
-						"except": [ "$" ]
-					},
-					"squeeze": {},
-					"codegen": {}
-				}
+			// Meta Build Info
+			"meta": {
+				"buildDate": dateFormat( now, "m/d/yyyy" )
 			},
-			readJson( "build.json", true )
-		),
-		// Setup Distribution File Banner (License Block)
-		banner = _.template( typeof config.banner == "string" ? config.banner : "" );
+
+			// Overridden with build.json
+			"files": {},
+
+			// License Banner Template
+			"banner": [
+				"// <%= label %> - v<%= version %> - <%= buildDate %>",
+				"// <%= homeurl %>",
+				"// <%= copyright %>; Licensed <%= license.join(', ') %>"
+			].join( "\n" ),
+
+			// JSHint Optional Settings
+			"jshint": {
+				unused: true,
+				unuseds: true,
+				devel: true,
+				undef: true,
+				noempty: true,
+				evil: true,
+				forin: false,
+				maxerr: 100
+				// "curly": true,
+				// "eqnull": true,
+				// "immed": true,
+				// "newcap": true,
+				// "noarg": true,
+				// "undef": true,
+				// "browser": true,
+				// "predef": [ "jQuery" ]
+			},
+
+			// Uglify Optional Settings
+			"uglify": {
+				"mangle": {
+					"except": [ "$" ]
+				},
+				"squeeze": {},
+				"codegen": {}
+			}
+		},
+		readJson( "build.json", true )
+	),
+	// Setup Distribution File Banner (License Block)
+	banner = _.template( typeof config.banner == "string" ? config.banner : "" );
 
 // Logging Utility Functions
 function header( msg ) {
@@ -177,8 +177,8 @@ function uglify( src ) {
 	write( "Uglifying..." );
 
 	var jsp = uglifyjs.parser,
-			pro = uglifyjs.uglify,
-			ast;
+		pro = uglifyjs.uglify,
+		ast;
 
 	try {
 		ast = jsp.parse( src );
@@ -217,17 +217,17 @@ task( "hint", function() {
 	_.keys( config.files).forEach(function( minpath ) {
 
 		var files = config.files[ minpath ],
-				concat = files.src.map(function( path ) {
-					var src = readFile( path );
+			concat = files.src.map(function( path ) {
+				var src = readFile( path );
 
-					config.jshint.devel = config.jshint.debug = files.debug;
+				config.jshint.devel = config.jshint.debug = files.debug;
 
-					if ( file.prehint ) {
-						hint( src );
-					}
+				if ( file.prehint ) {
+					hint( src );
+				}
 
-					return src;
-				}).join( "\n" );
+				return src;
+			}).join( "\n" );
 
 		if ( files.src.length > 1 ) {
 			write( "Concatenating " + files.src.length + " scripts..." );
@@ -247,11 +247,11 @@ task( "min", function() {
 	_.keys( config.files ).forEach(function( minpath ) {
 
 		var file = config.files[ minpath ],
-				concat = file.src.map( function( path ) {
-					return readFile( path );
-				}).join( "\n" ),
+			concat = file.src.map( function( path ) {
+				return readFile( path );
+			}).join( "\n" ),
 
-				intro, min;
+			intro, min;
 
 		// Generate intro block with banner template,
 		// Inject meta build data
