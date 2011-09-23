@@ -1,0 +1,21 @@
+{
+	"files": {
+		"dist/scripts.min.js": {
+			"src": [
+				"js/app/scripts.js"
+			],
+			"prehint": true,
+			"posthint": true,
+			"debug": true,
+
+			"meta": {
+				"label": "Popcorn.kernel",
+				"author": "Many People",
+				"version": "0.0.0",
+				"homeurl": "",
+				"license": [ "MIT" ],
+				"copyright": "Copyright (c) The Internet"
+			}
+		}
+	}
+}

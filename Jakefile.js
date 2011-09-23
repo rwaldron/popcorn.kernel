@@ -1,189 +1,281 @@
-var // Program refs
-fs = require("fs"),
-sys = require("sys"),
-uglify = require("uglify-js"),
-jshint = require("jshint").JSHINT,
-print = sys.print,
-util = require("util"),
-cp = require("child_process"),
-exec = cp.exec,
-spawn = cp.spawn,
-assert = require("assert"),
-child;
+/*!
+ * Based on...
+ * Cowboy's Jakefile- v0.1pre - 9/20/2011
+ * http://benalman.com/
+ *
+ * Copyright (c) 2011 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
 
-// Contants
-FILES = {
-	vendor: [
+var // Dependency References
+		fs = require( "fs" ),
+		_ = require( "underscore" ),
+		jshint = require( "jshint" ).JSHINT,
+		colors = require( "colors" ),
+		uglifyjs = require( "uglify-js" ),
+		Buffer = require( "buffer" ).Buffer,
+		zlib = require( "zlib" ),
+		dateFormat = require( "dateformat" );
 
-	],
-	application: [
+var // Shortcut References
+		slice = Array.prototype.slice,
+		now = new Date();
 
-	],
-	system: [
-		"Jakefile.js"
-	],
-	// server: [
-	// 	"proxy/index.js"
-	// ],
-	unit: [
+var // Program References
+		$$ = {},
+		// Get options, defaults merged with build.json file.
+		config = _.extend({}, true, {
 
-	]
-};
+				// Meta Build Info
+				"meta": {
+					"buildDate": dateFormat( now, "m/d/yyyy" )
+				},
 
-JS_DIR = "js/";
+				// Overridden with build.json
+				"files": {},
 
-HINTABLES = [ "application", "server", "unit", "system" ];
+				// License Banner Template
+				"banner": [
+					"// <%= label %> - v<%= version %> - <%= buildDate %>",
+					"// <%= homeurl %>",
+					"// <%= copyright %>; Licensed <%= license.join(', ') %>"
+				].join( "\n" ),
 
-HINTS = {
-	// `data: true` can be used by us to output information collected and available via jshint.data()
-	application: { unused: true, unuseds: true, devel: true, undef: true, noempty: true, evil: true, forin: false, maxerr: 100 },
-	system: { devel: true, noempty: true, evil: true, forin: false, maxerr: 100 },
-	server: { devel: true, noempty: true, evil: true, forin: false, maxerr: 100 },
-	unit: { devel: true, evil: true, forin: false, maxerr: 100 }
-};
+				// JSHint Optional Settings
+				"jshint": {
+					unused: true,
+					unuseds: true,
+					devel: true,
+					undef: true,
+					noempty: true,
+					evil: true,
+					forin: false,
+					maxerr: 100
+					// "curly": true,
+					// "eqnull": true,
+					// "immed": true,
+					// "newcap": true,
+					// "noarg": true,
+					// "undef": true,
+					// "browser": true,
+					// "predef": [ "jQuery" ]
+				},
 
-
-SILENT = process.argv[ process.argv.length - 1 ] === "--silent" || false;
-VERBOSE = process.argv[ process.argv.length - 1 ] === "--verbose" || false;
-
-
-
-desc( "Hint all JavaScript program files with JSHint *" );
-task( "hint", [], function( params ) {
-
-	print( "\nHinting..." );
-	!SILENT && print( "\n" );
-
-	var files = FILES,
-	hints = HINTS,
-	count = 0;
-
-	function hintFile( file, hint, set ) {
-
-		var errors, warning, data,
-
-		found = 0,
-
-		src = fs.readFileSync( file, "utf8"),
-
-		ok = {
-			// warning.reason
-			"Expected an identifier and instead saw 'undefined' (a reserved word).": true,
-			"Use '===' to compare with 'null'.": true,
-			"Use '!==' to compare with 'null'.": true,
-			"Expected an assignment or function call and instead saw an expression.": true,
-			"Expected a 'break' statement before 'case'.": true,
-			"'e' is already defined.": true,
-
-			// warning.raw
-			"Expected an identifier and instead saw \'{a}\' (a reserved word).": true
-		},
-
-		dataProps = {
-			unuseds: true,
-			implieds: true,
-			globals: true
-		},
-		props;
-
-		jshint( src, hint );
-
-		errors = jshint.errors;
-
-		if ( hint.data ) {
-
-			data = jshint.data();
-
-			Object.keys( dataProps ).forEach(function( prop ) {
-				if ( data[ prop ] ) {
-					console.log( prop, data[ prop ] );
+				// Uglify Optional Settings
+				"uglify": {
+					"mangle": {
+						"except": [ "$" ]
+					},
+					"squeeze": {},
+					"codegen": {}
 				}
-			});
-		}
+			},
+			readJson( "build.json", true )
+		),
+		// Setup Distribution File Banner (License Block)
+		banner = _.template( typeof config.banner == "string" ? config.banner : "" );
 
-		for ( var i = 0; i < errors.length; i++ ) {
-			warning = errors[i];
+// Logging Utility Functions
+function header( msg ) {
+	writeln( "\n" + msg.underline );
+}
+function write( msg ) {
+	process.stdout.write( (msg != null && msg) || "" );
+}
+function writeln( msg ) {
+	console.log( (msg != null && msg) || "" );
+}
+function ok( msg ) {
+	writeln( msg ? "\n>> ".green + msg : "OK".green );
+}
+function error( msg ) {
+	writeln( msg ? "\n>> ".red + msg : "ERROR".red );
+}
 
-			// If a warning exists for this error
-			if ( warning &&
-					// If the warning has evidence and the evidence is NOT a single line comment
-					( warning.evidence && !/^\/\//.test( warning.evidence.trim() ) )
-				) {
 
-				//console.dir( warning );
+// Read a file.
+function readFile( filepath ) {
+	var src;
+	write( "Reading " + filepath + "..." );
+	try {
+		src = fs.readFileSync( filepath, "UTF-8" );
+		ok();
+		return src;
+	} catch( e ) {
+		error();
+		fail( e.message );
+	}
+}
 
-				if ( !ok[ warning.reason ] && !ok[ warning.raw ] ) {
-					found++;
+// Write a file.
+function writeFile( filepath, contents, silent ) {
+	// if ( config.nowrite ) {
+	//	 writeln('Not'.underline + ' writing ' + filepath + ' (dry run).');
+	//	 return true;
+	// }
 
-					print( "\n" + file + " at L" + warning.line + " C" + warning.character + ": " + warning.reason );
-					print( "\n    " + warning.evidence.trim() + "\n");
-
-				}
-			}
-		}
-
-		if ( found > 0 ) {
-
-			print( "\n    " + set + ": \n" );
-			print( "\n\n" + found + " Error(s) found in: " + file + "\n\n" );
-
-		} else {
-
-			!SILENT && print( "        PASS: " + file + "\n" );
-		}
+	if ( arguments.length < 3 ) {
+		silent = true;
 	}
 
+	silent || write( "Writing " + filepath + "..." );
 
-	HINTABLES.forEach(function( set, i ) {
+	try {
+		fs.writeFileSync( filepath, contents, "UTF-8" );
+	} catch( e ) {
+		error();
+		fail( e );
+	}
 
-		var fileSet = files[ set ];
+	ok();
+	return true;
+}
 
-		if ( fileSet && fileSet.length ) {
+// Read and parse a JSON file.
+function readJson( filepath, silent ) {
+	var result;
 
-			!SILENT && print( "\n    " + set + ": \n" );
+	silent || write( "Reading " + filepath + "..." );
 
-			files[ set ].forEach(function( file, i ) {
+	try {
+		result = JSON.parse(
+			fs.readFileSync( filepath, "UTF-8" )
+		);
+	} catch( e ) {
+		silent || error();
+		fail( e.message );
+	}
 
-				hintFile( file, hints[ set ], set );
+	silent || ok();
+	return result;
+}
 
-				count++;
-			});
-		}
 
-		if ( HINTABLES.length - 1 === i ) {
-			print("\nComplete: " + count + " files hinted\n");
+// # Lint some source code.
+// From http://jshint.com
+function hint( src ) {
+	write( "Validating with JSHint...");
+
+	if ( jshint( src, config.jshint ) ) {
+		ok();
+	} else {
+		error();
+
+		jshint.errors.forEach(function( e ) {
+			if ( !e ) { return; }
+			var str = e.evidence ? e.evidence.inverse + " <- " : "";
+			error( "[L" + e.line + ":C" + e.character + "] " + str + e.reason );
+		});
+		fail( "JSHint found errors." );
+	}
+}
+
+// # Minify with UglifyJS.
+// From https://github.com/mishoo/UglifyJS
+function uglify( src ) {
+	write( "Uglifying..." );
+
+	var jsp = uglifyjs.parser,
+			pro = uglifyjs.uglify,
+			ast;
+
+	try {
+		ast = jsp.parse( src );
+		ast = pro.ast_mangle( ast, config.uglify.mangle || {});
+		ast = pro.ast_squeeze( ast, config.uglify.squeeze || {});
+		src = pro.gen_code( ast, config.uglify.codegen || {});
+
+	} catch( e ) {
+		error();
+		error( "[L" + e.line + ":C" + e.col + "] " + e.message + " (position: " + e.pos + ")" );
+		fail( e.message );
+		return false;
+	}
+
+	ok();
+	return src;
+}
+
+// Return deflated src input.
+function gzip( src ) {
+	return zlib.deflate( new Buffer( src ) );
+}
+
+// Jake Tasks
+
+desc( "Hint & Minify" );
+task( "default", [ "hint", "min" ], function() {
+	// Nothing
+});
+
+desc( "Validate with JSHint." );
+task( "hint", function() {
+
+	header( "Validating with JSHint" );
+
+	_.keys( config.files).forEach(function( minpath ) {
+
+		var files = config.files[ minpath ],
+				concat = files.src.map(function( path ) {
+					var src = readFile( path );
+
+					config.jshint.devel = config.jshint.debug = files.debug;
+
+					if ( file.prehint ) {
+						hint( src );
+					}
+
+					return src;
+				}).join( "\n" );
+
+		if ( files.src.length > 1 ) {
+			write( "Concatenating " + files.src.length + " scripts..." );
+			ok();
+			if ( files.posthint ) {
+				hint( concat );
+			}
 		}
 	});
 });
 
-desc( "Run socket" );
-task( "socket", [ ], function() {
-	try {
+desc( "Minify with Uglify-js." );
+task( "min", function() {
 
-		// Placeholder
-		spawn( "node", [ "socket/socket.js" ] );
+	header( "Minifying with Uglify-js" );
 
-	} catch( ex ) {
-		console.log( ex.toString() );
-	}
-});
+	_.keys( config.files ).forEach(function( minpath ) {
 
-desc( "Run server" );
-task( "run", [ ], function() {
-	try {
+		var file = config.files[ minpath ],
+				concat = file.src.map( function( path ) {
+					return readFile( path );
+				}).join( "\n" ),
 
-		// Placeholder
-		spawn( "node", [ "server.js" ] );
+				intro, min;
 
+		// Generate intro block with banner template,
+		// Inject meta build data
+		intro = banner( _.extend( file.meta, config.meta ) );
 
-	} catch( ex ) {
-		console.log( ex.toString() );
-	}
-});
+		// Without a newline, the min source code will run on the same
+		// Line as the intro lic/banner block
+		if ( intro ) {
+			intro += "\n";
+		}
 
-desc( "Default set ( * Required for deployment )" );
-task( "default", [ "hint" ], function( params ) {
+		// Provide information about current file being built
+		if ( file.src.length ) {
+			write( "Concatenating " + file.src.length + " script(s)" );
+			ok();
+		}
 
-	print( "\n" );
+		if ( min = uglify( concat ) ) {
 
+			min = intro + min;
+
+			if ( writeFile( minpath, min, false ) ) {
+				ok( "Compressed size: " + (gzip( min ).length + "").yellow + " bytes gzipped (" + ( min.length + "" ).yellow + " bytes minified)." );
+			}
+		}
+	});
 });

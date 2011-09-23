@@ -11,12 +11,14 @@
 		"node": ">=v0.4.8"
 	},
 	"devDependencies": {
+		"underscore": "*",
 		"jshint": "*",
 		"uglify-js": "*",
 		"express": "*",
-		"socket.io": "*",
-		"cluster": "*",
 		"vows": "*",
-		"stats": "*"
+		"stats": "*",
+		"colors": "*",
+		"zlib": "*",
+		"dateformat": "*"
 	}
 }
