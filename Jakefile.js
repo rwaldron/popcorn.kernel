@@ -165,6 +165,7 @@ function hint( src ) {
 		jshint.errors.forEach(function( e ) {
 			if ( !e ) { return; }
 			var str = e.evidence ? e.evidence.inverse + " <- " : "";
+
 			error( "[L" + e.line + ":C" + e.character + "] " + str + e.reason );
 		});
 		fail( "JSHint found errors." );
@@ -214,7 +215,7 @@ task( "hint", function() {
 
 	header( "Validating with JSHint" );
 
-	_.keys( config.files).forEach(function( minpath ) {
+	_.keys( config.files ).forEach(function( minpath ) {
 
 		var files = config.files[ minpath ],
 			concat = files.src.map(function( path ) {
@@ -229,9 +230,10 @@ task( "hint", function() {
 				return src;
 			}).join( "\n" );
 
-		if ( files.src.length > 1 ) {
+		if ( files.src.length ) {
 			write( "Concatenating " + files.src.length + " scripts..." );
 			ok();
+
 			if ( files.posthint ) {
 				hint( concat );
 			}
